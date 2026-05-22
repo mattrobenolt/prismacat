@@ -1,9 +1,11 @@
 const std = @import("std");
 const Io = std.Io;
 const mem = std.mem;
+const process = std.process;
+const Allocator = mem.Allocator;
+const build_options = @import("build_options");
 
 const prismacat = @import("prismacat");
-const build_options = @import("build_options");
 
 const usage =
     \\Usage: prismacat [OPTIONS] [FILE...]
@@ -37,7 +39,7 @@ const Args = struct {
     version: bool = false,
 };
 
-pub fn main(init: std.process.Init) u8 {
+pub fn main(init: process.Init) u8 {
     return run(init) catch |err| switch (err) {
         error.WriteFailed => 0,
         else => {
@@ -47,20 +49,23 @@ pub fn main(init: std.process.Init) u8 {
     };
 }
 
-fn run(init: std.process.Init) !u8 {
+fn run(init: process.Init) !u8 {
+    const io = init.io;
+    const arena = init.arena.allocator();
+
     var stderr_buffer: [1024]u8 = undefined;
-    var stderr_file_writer: Io.File.Writer = .init(.stderr(), init.io, &stderr_buffer);
+    var stderr_file_writer: Io.File.Writer = .init(.stderr(), io, &stderr_buffer);
     const stderr = &stderr_file_writer.interface;
     defer stderr.flush() catch {};
 
     var stdout_buffer: [8192]u8 = undefined;
-    var stdout_file_writer: Io.File.Writer = .init(.stdout(), init.io, &stdout_buffer);
+    var stdout_file_writer: Io.File.Writer = .init(.stdout(), io, &stdout_buffer);
     const stdout = &stdout_file_writer.interface;
     defer stdout.flush() catch {};
 
     var files: std.ArrayList([:0]const u8) = .empty;
     var arg_it = init.minimal.args.iterate();
-    const args = parseArgs(init.arena.allocator(), &arg_it, stderr, &files) catch return 1;
+    const args = parseArgs(arena, &arg_it, stderr, &files) catch return 1;
 
     if (args.help) {
         try stdout.writeAll(usage);
@@ -80,19 +85,19 @@ fn run(init: std.process.Init) !u8 {
     }
 
     if (args.files.len == 0) {
-        try colorizeStdin(init, stdout, args);
+        try colorizeStdin(io, stdout, args);
         return 0;
     }
 
     var failed = false;
     for (args.files) |path| {
         if (mem.eql(u8, path, "-")) {
-            colorizeStdin(init, stdout, args) catch |err| {
+            colorizeStdin(io, stdout, args) catch |err| {
                 failed = true;
                 try reportInputError(stdout, stderr, "stdin", err);
             };
         } else {
-            colorizeFile(init, stdout, path, args) catch |err| {
+            colorizeFile(io, stdout, path, args) catch |err| {
                 failed = true;
                 try reportInputError(stdout, stderr, path, err);
             };
@@ -109,20 +114,20 @@ fn reportInputError(stdout: *Io.Writer, stderr: *Io.Writer, path: []const u8, er
     try stderr.flush();
 }
 
-fn colorizeStdin(init: std.process.Init, stdout: *Io.Writer, args: Args) !void {
+fn colorizeStdin(io: Io, stdout: *Io.Writer, args: Args) !void {
     var stdin_buffer: [4096]u8 = undefined;
-    var stdin_file_reader: Io.File.Reader = .init(.stdin(), init.io, &stdin_buffer);
+    var stdin_file_reader: Io.File.Reader = .init(.stdin(), io, &stdin_buffer);
     const stdin = &stdin_file_reader.interface;
 
     try colorizeReader(stdin, stdout, args);
 }
 
-fn colorizeFile(init: std.process.Init, stdout: *Io.Writer, path: []const u8, args: Args) !void {
-    const file = try Io.Dir.cwd().openFile(init.io, path, .{});
-    defer file.close(init.io);
+fn colorizeFile(io: Io, stdout: *Io.Writer, path: []const u8, args: Args) !void {
+    const file = try Io.Dir.cwd().openFile(io, path, .{});
+    defer file.close(io);
 
     var file_buffer: [4096]u8 = undefined;
-    var file_reader: Io.File.Reader = .init(file, init.io, &file_buffer);
+    var file_reader: Io.File.Reader = .init(file, io, &file_buffer);
     const reader = &file_reader.interface;
 
     try colorizeReader(reader, stdout, args);
@@ -143,8 +148,8 @@ fn colorizeReader(reader: *Io.Reader, stdout: *Io.Writer, args: Args) !void {
 }
 
 fn parseArgs(
-    allocator: std.mem.Allocator,
-    argv: *std.process.Args.Iterator,
+    allocator: Allocator,
+    argv: *process.Args.Iterator,
     stderr: *Io.Writer,
     files: *std.ArrayList([:0]const u8),
 ) !Args {
