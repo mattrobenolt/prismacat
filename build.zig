@@ -5,11 +5,8 @@ const themes = @import("src/build/themes.zig");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    const version_opt = b.option([]const u8, "version", "version string");
-    const version_string = if (version_opt) |version| version else @import("build.zig.zon").version;
-
     const build_options = b.addOptions();
-    build_options.addOption([]const u8, "version", version_string);
+    build_options.addOption([]const u8, "version", @import("build.zig.zon").version);
 
     const mod = b.addModule("prismacat", .{
         .root_source_file = b.path("src/root.zig"),

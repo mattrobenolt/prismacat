@@ -15,7 +15,6 @@ builds:
     flags:
       - -Doptimize=ReleaseFast
       - -Dcpu=baseline
-      - -Dversion={{ .Version }}
 
 archives:
   - id: default
