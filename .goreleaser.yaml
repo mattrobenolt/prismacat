@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+version: 2
+
+project_name: prismacat
+
+builds:
+  - id: prismacat
+    builder: zig
+    binary: prismacat
+    targets:
+      - aarch64-macos
+      - x86_64-linux
+      - aarch64-linux
+    flags:
+      - -Doptimize=ReleaseFast
+      - -Dcpu=baseline
+      - -Dversion={{ .Version }}
+
+archives:
+  - id: default
+    ids:
+      - prismacat
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    formats:
+      - tar.gz
+
+checksum:
+  name_template: checksums.txt
+
+homebrew_casks:
+  - name: prismacat
+    homepage: https://github.com/mattrobenolt/prismacat
+    description: Themeable truecolor cat for terminal gradients.
+    binaries:
+      - prismacat
+    repository:
+      owner: mattrobenolt
+      name: homebrew-stuff
+      token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'

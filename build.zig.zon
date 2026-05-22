@@ -1,0 +1,19 @@
+.{
+    .name = .prismacat,
+    .version = "0.0.0",
+    .fingerprint = 0xe8608eef8f1451f5,
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{
+        .iterm2_color_schemes = .{
+            .url = "git+https://github.com/mbadolato/iTerm2-Color-Schemes.git#7335c0a83e052f459558c6db22661c9c8a787a14",
+            .hash = "N-V-__8AAMuLQALdOKtuVKyMmAEIAB3oxU5uvLB4-dQVKth3",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "LICENSE",
+        "README.md",
+        "src",
+    },
+}
