@@ -109,6 +109,36 @@ prismacat --theme "Adventure Time"
 brew install --cask mattrobenolt/stuff/prismacat
 ```
 
+### Nix
+
+Run it directly from [mattrobenolt/nixpkgs](https://github.com/mattrobenolt/nixpkgs):
+
+```sh
+nix run github:mattrobenolt/nixpkgs#prismacat -- --help
+fortune | cowsay | nix run github:mattrobenolt/nixpkgs#prismacat
+```
+
+Or add the overlay to a flake and use `pkgs.prismacat`:
+
+```nix
+{
+  inputs.mattware.url = "github:mattrobenolt/nixpkgs";
+
+  outputs = { nixpkgs, mattware, ... }:
+    let
+      system = "aarch64-darwin";
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ mattware.overlays.default ];
+      };
+    in {
+      devShells.${system}.default = pkgs.mkShell {
+        packages = [ pkgs.prismacat ];
+      };
+    };
+}
+```
+
 ## Building
 
 This project targets Zig `0.16`.
