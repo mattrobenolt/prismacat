@@ -6,6 +6,10 @@ It reads text from files or stdin, paints it with a smooth ANSI 24-bit color gra
 
 It is inspired by `lolcat`, but it is not trying to be a clone. No animation, no terminal theatrics, no 256-color fallback. Just fast themed truecolor output that composes well with normal Unix pipes.
 
+<picture>
+  <img alt="prismacat coloring fortune output through cowsay" src="assets/prismacat-demo.png">
+</picture>
+
 ```sh
 fortune | cowsay | prismacat
 prismacat README.md

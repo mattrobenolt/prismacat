@@ -33,11 +33,14 @@
         {
           devShells.default = pkgs.mkShell {
             packages = with pkgs; [
+              charm-freeze
               cowsay
               figlet
               fortune
               goreleaser
+              just
               lolcat
+              oxipng
               zig_0_16
               zigdoc
               ziglint
