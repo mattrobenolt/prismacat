@@ -102,7 +102,7 @@ prismacat --theme "Adventure Time"
 ### Homebrew
 
 ```sh
-brew install mattrobenolt/stuff/prismacat
+brew install --cask mattrobenolt/stuff/prismacat
 ```
 
 ## Building
