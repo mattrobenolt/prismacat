@@ -65,7 +65,7 @@ fn run(init: process.Init) !u8 {
 
     var files: std.ArrayList([:0]const u8) = .empty;
     var arg_it = init.minimal.args.iterate();
-    const args = parseArgs(arena, &arg_it, stderr, &files) catch return 1;
+    var args = parseArgs(arena, &arg_it, stderr, &files) catch return 1;
 
     if (args.help) {
         try stdout.writeAll(usage);
@@ -79,6 +79,9 @@ fn run(init: process.Init) !u8 {
         try prismacat.writeThemeNames(stdout);
         return 0;
     }
+
+    randomizeStart(io, &args.options);
+
     if (args.demo) {
         try prismacat.writeDemo(stdout, args.options);
         return 0;
@@ -105,6 +108,12 @@ fn run(init: process.Init) !u8 {
     }
 
     return if (failed) 1 else 0;
+}
+
+fn randomizeStart(io: Io, options: *prismacat.Options) void {
+    var seed: u64 = undefined;
+    io.random(mem.asBytes(&seed));
+    options.offset = seed % options.spread;
 }
 
 fn reportInputError(stdout: *Io.Writer, stderr: *Io.Writer, path: []const u8, err: anyerror) !void {

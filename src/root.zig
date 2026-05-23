@@ -23,6 +23,7 @@ pub const default_theme = theme_map.get("12-bit Rainbow").?;
 pub const Options = struct {
     spread: u16 = 50,
     angle: Angle = .diagonal,
+    offset: usize = 0,
 };
 
 pub const Angle = enum {
@@ -151,7 +152,7 @@ pub const Colorizer = struct {
             return;
         }
 
-        const position = switch (self.options.angle) {
+        const position = self.options.offset + switch (self.options.angle) {
             .horizontal => self.column,
             .diagonal => self.column + self.row,
         };
